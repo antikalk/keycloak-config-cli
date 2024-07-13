@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added support for User Profile Setting: `unmanagedAttributePolicy`
+
 ## [5.12.0] - 2024-03-28
 - Added support for managing message bundles
 
