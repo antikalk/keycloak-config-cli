@@ -302,12 +302,16 @@ public class ImportConfigProperties {
         @NotNull
         private final String suffix;
 
-        public ImportVarSubstitutionProperties(boolean enabled, boolean nested, boolean undefinedIsError, String prefix, String suffix) {
+        @Valid
+        private final ImportVarAwsSecretsSubstitutionProperties awsSecrets;
+
+        public ImportVarSubstitutionProperties(boolean enabled, boolean nested, boolean undefinedIsError, String prefix, String suffix, ImportVarAwsSecretsSubstitutionProperties awsSecrets) {
             this.enabled = enabled;
             this.nested = nested;
             this.undefinedIsError = undefinedIsError;
             this.prefix = prefix;
             this.suffix = suffix;
+            this.awsSecrets = awsSecrets;
         }
 
         public boolean isEnabled() {
@@ -328,6 +332,30 @@ public class ImportConfigProperties {
 
         public String getSuffix() {
             return suffix;
+        }
+
+        public ImportVarAwsSecretsSubstitutionProperties getAwsSecrets() {
+            return awsSecrets;
+        }
+    }
+
+    public static class ImportVarAwsSecretsSubstitutionProperties {
+        @NotNull
+        private final boolean enabled;
+        @NotNull
+        private final String region;
+
+        public ImportVarAwsSecretsSubstitutionProperties(boolean enabled, String region) {
+            this.enabled = enabled;
+            this.region = region;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public String getRegion() {
+            return region;
         }
     }
 

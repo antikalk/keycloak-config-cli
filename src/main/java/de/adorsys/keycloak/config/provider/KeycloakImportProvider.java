@@ -36,7 +36,6 @@ import org.apache.commons.text.lookup.StringLookupFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -67,7 +66,6 @@ public class KeycloakImportProvider {
 
     @Autowired
     public KeycloakImportProvider(
-            Environment environment,
             PathMatchingResourcePatternResolver patternResolver,
             ImportConfigProperties importConfigProperties
     ) {
@@ -75,14 +73,12 @@ public class KeycloakImportProvider {
         this.importConfigProperties = importConfigProperties;
 
         if (importConfigProperties.getVarSubstitution().isEnabled()) {
-            setupVariableSubstitution(environment);
+            setupVariableSubstitution(importConfigProperties.getVarSubstitution());
         }
     }
 
-    private void setupVariableSubstitution(Environment environment) {
-        StringLookup variableResolver = StringLookupFactory.INSTANCE.interpolatorStringLookup(
-                StringLookupFactory.INSTANCE.functionStringLookup(environment::getProperty)
-        );
+    private void setupVariableSubstitution(ImportConfigProperties.ImportVarSubstitutionProperties properties) {
+        StringLookup variableResolver = getStringLookup(properties);
 
         this.interpolator = StringSubstitutor.createInterpolator()
                 .setVariableResolver(variableResolver)
@@ -90,6 +86,20 @@ public class KeycloakImportProvider {
                 .setVariableSuffix(importConfigProperties.getVarSubstitution().getSuffix())
                 .setEnableSubstitutionInVariables(importConfigProperties.getVarSubstitution().isNested())
                 .setEnableUndefinedVariableException(importConfigProperties.getVarSubstitution().isUndefinedIsError());
+    }
+
+    private static StringLookup getStringLookup(ImportConfigProperties.ImportVarSubstitutionProperties properties) {
+        Map<String, StringLookup> lookupMap = new HashMap<>();
+
+        if (properties.getAwsSecrets().isEnabled()) {
+            AwsSecretLookup awsSecretLookup = new AwsSecretLookup(properties.getAwsSecrets());
+            lookupMap.put("aws", awsSecretLookup);
+        }
+
+        StringLookupFactory factory = StringLookupFactory.INSTANCE;
+        factory.addDefaultStringLookups(lookupMap);
+
+        return factory.interpolatorStringLookup(lookupMap);
     }
 
     public KeycloakImport readFromLocations(String... locations) {
